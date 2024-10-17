@@ -18,10 +18,10 @@ app.use(cookieParser())
 //CORS so diffrent services can connect to this one
 app.use(express.json());
 //what origins can use my app
-const allowedOrigins = ['http://localhost:5173'];
+const allowedOrigins = ['http://localhost:5173','https://localhost:5555'];
 const corsOptions = {
     origin: function (origin, callback) {
-      // Check if the origin is allowed
+       //Check if the origin is allowed
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -42,6 +42,8 @@ app.post('/access_token', async (request,response)=>{
                 return response.status(403).send('fill up youre username and password');
             }
             const player=Player.findOne(request.body.userName);
+            console.log(player.userName+' '+player.password)
+            console.log( request.body.userName+' '+request.body.password)
        if(!bcrypt.compare(request.body.password,player.password))
        {
             response.cookie('Gameon_access_token',"",{httpOnly:true})

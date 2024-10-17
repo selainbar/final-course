@@ -74,3 +74,53 @@
 //q: what is that <div></div> for?
 //a: The <div></div> is an empty div element that is used to create space between the buttons and the header text. It is a common practice to use empty div elements for spacing and layout purposes in HTML and CSS.
 
+//q: how to upload to git hub
+//a: To upload to GitHub, you need to follow these steps:
+//1. Create a new repository on GitHub.
+//2. Initialize a new Git repository on your local machine.
+//3. Add your files to the Git repository.
+//4. Commit your changes.
+//5. Add the GitHub repository as a remote.
+//6. Push your changes to the GitHub repository.
+//Here's a
+// step-by
+// step guide on how to do this:
+//1. Create a new repository on GitHub:
+//Go to GitHub and log in to your account.
+//Click on the "+" icon in the top right corner and select "New repository."
+//Give your repository a name, description, and choose whether it should be public or private.
+//Click on "Create repository."
+//2. Initialize a new Git repository on your local machine:
+//Open your terminal or command prompt.
+//Navigate to the directory where your project is located.
+//Run the following command to initialize a new Git repository:
+//git init
+//3. Add your files to the Git repository:
+//Run the following command to add all files to the staging area:
+//git add .
+//4. Commit your changes:
+//Run the following command to commit your changes with a message:
+//git commit -m "Initial commit"
+//5. Add the GitHub repository as a remote:
+//Copy the URL of your GitHub repository.
+//Run the following command to add the GitHub repository as a remote:
+//git remote add origin <repository URL>
+//6. Push your changes to the GitHub repository:
+//Run the following command to push your changes to the GitHub repository:
+//git push -u origin master
+//Replace "master" with the name of the branch you want to push to (e.g., "main").
+//After following these steps, your project should be uploaded to GitHub, and you can view it on your GitHub repository page.
+
+
+//q: i have this git url that i want to upload to  git@github.com:selainbar/Game-on.git
+//a: To upload your project to the GitHub repository with the URL
+//q: can you walk me threw it?
+//a: Sure! Here's how you can upload your project to the GitHub repository with the URL
+//1. Initialize a new Git repository on your local machine:
+//Open your terminal or command prompt.
+//Navigate to the directory where your project is located.
+//Run the following command to initialize a new Git repository:
+//git init
+//2. Add your files to the Git repository:
+//Run the following command to add all files to the staging area:
+//git add .
