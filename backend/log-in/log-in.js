@@ -1,119 +1,179 @@
-import express, { response } from 'express';
+import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import Player from './models/playerModel.js';
+import Player from './models/player.js';
 import jwt from 'jsonwebtoken';
-import bcrypt, { genSalt } from 'bcrypt';
+import bcrypt from 'bcrypt';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 dotenv.config();
 const app = express();
 
 
- const cryptingPasword=async(password)=>{
-   const cryptedPassword= await bcrypt.hash(password,salt);
-   return cryptedPassword;
-}
+
 app.use(cookieParser())
 //CORS so diffrent services can connect to this one
 app.use(express.json());
 //what origins can use my app
-const allowedOrigins = ['http://localhost:5173','https://localhost:5555'];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5555', 'http://localhost:3000','http://localhost:8989'];
+
 const corsOptions = {
     origin: function (origin, callback) {
-       //Check if the origin is allowed
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
     },
     credentials: true, // Allow cookies and headers with credentials
-    optionsSuccessStatus: 200, // Some legacy browsers (IE11) choke on 204
-  };
-  
+    optionsSuccessStatus: 200,
+};
 app.use(cors(corsOptions));
 
-// creating the access token
-app.post('/access_token', async (request,response)=>{
-    try{
-        if(request.body.userName==""||request.body.password=="")
-            {
-                return response.status(403).send('fill up youre username and password');
-            }
-            const player=Player.findOne(request.body.userName);
-            console.log(player.userName+' '+player.password)
-            console.log( request.body.userName+' '+request.body.password)
-       if(!bcrypt.compare(request.body.password,player.password))
-       {
-            response.cookie('Gameon_access_token',"",{httpOnly:true})
+
+// creating the checking refresh token
+app.post('/userRefresh_token', async (request, response) => {
+    try {
+        const{userName,password}=request.body;
+        if (request.body.userName === "" || request.body.password === "") {
+            return response.status(403).send('Fill up your username and password');
+        }
+        const player = await Player.findOne({ userName });
+        if (!player) {
+            return response.status(403).send('User not found');
+        }        
+        const match = await bcrypt.compare(password, player.password);
+        if (!match) {
+            response.cookie('refreshToken', " ", { httpOnly: true });
             return response.status(403).send('User not found');
         }
-        const token = jwt.sign({userName: userName,password:password}, process.env.JWT_ACCESS_SECRET, { expiresIn: '15m' });
-        response.cookie('Gameon_access_token',token,{httpOnly:true})
-        response.status(200).send(token)
-    } catch (error) {
-        console.log(error.message);
-        response.status(500).send({ message: error.message });
-    }
-})
-
- 
- app.get('/JWTvalid',(request,response)=>{
-  const token=request.cookies.Gameon_access_token
-
-if (!token) {
-    return response.status(401).send('Unauthorized');
-  }
-    try{
-   const {userName,password}=jwt.verify(token,process.env.JWT_ACCESS_SECRET)
-//const userName=jwt.verify(tokenID,process.env.JWT_ID_SECRET)
-//const accessLVL =jwt.verify(tokenACCESS,process.env.JWT_ACCESS_SECRET)
-//const refreshTOKEN =jwt.verify(tokenREFRESH,process.env.JWT_REFRESH_SECRET)
-return response.status(200).send(
-    //userName:userName,
-   //accessLVL
-    //refreshTOKEN: refreshTOKEN
-    {userName:userName,
-        password:password
-    }
-);
-    }
-    catch (error) {
-        console.log(error.message);
-        response.status(500).send({ message: error.message });
- }})
-// Post Route to Create New Player
-app.post('/players', async (request, response) => {
-    try {
-        const { userName, password } = request.body;
-
-        if (!userName || !password) {
-            return response.status(400).send({ message: 'Send all required fields' });
-        }
-        const salt= await bcrypt.genSalt(10);
-        const hashedpassword= await bcrypt.hash(request.body.password,salt);
-        const newPlayer = {
-            userName:request.body.userName,
-            password:hashedpassword,
-        };
-
-        const player = await Player.create(newPlayer);
-        console.log(player.userName+' '+player.password)
-        return response.status(201).send(player);
+        
+        const token = player.refreshToken;
+        response.cookie('refreshToken', token, { httpOnly: true });
+        response.status(200).send(token);
     } catch (error) {
         console.log(error.message);
         response.status(500).send({ message: error.message });
     }
 });
-console.log('app connected to DB');
+
+
+ 
+ app.get('/JWTvalid',(request,response)=>{
+  const token=request.cookies.refreshToken;
+if (!token) {
+    return response.status(401).send('Unauthorized');
+  }
+    try{
+   const player=jwt.verify(token,process.env.JWT_REFRESH_SECRET);
+const accessToken=jwt.sign({userName:player.userName}, process.env.JWT_ACCESS_SECRET, { expiresIn: `1h` });
+response.cookie('accessToken',accessToken,{httpOnly:true})
+response.cookie('user',player.userName,{httpOnly:false})
+return response.status(200).send(player.userName);
+    }
+    catch (error) {
+        console.log(error.message);
+        response.status(500).send({ message: error.message });
+ }})
+
+app.get('/checkTokens', (request, response) => {
+    const accessToken = request.cookies.accessToken;
+    const refreshToken = request.cookies.refreshToken;
+
+    if (!accessToken) {
+        if (!refreshToken) {
+            response.cookie('refreshToken', " ", { httpOnly: true });
+            return response.status(401).send('Unauthorized');
+        }
+
+        try {
+            const player = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+            const newAccessToken = jwt.sign({ userName: player.userName }, process.env.JWT_ACCESS_SECRET, { expiresIn: '1h' });
+            response.cookie('accessToken', newAccessToken, { httpOnly: true });
+            return response.status(200).send('New access token created');
+        } catch (error) {
+            response.cookie('refreshToken', " ", { httpOnly: true });
+            return response.status(401).send('Unauthorized');
+        }
+    }
+
+    try {
+        jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
+        return response.status(200).send('Access token is valid');
+    } catch (error) {
+        if (!refreshToken) {
+            response.cookie('refreshToken', " ", { httpOnly: true });
+            return response.status(401).send('Unauthorized');
+        }
+
+        try {
+            const player = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+            const newAccessToken = jwt.sign({ userName: player.userName }, process.env.JWT_ACCESS_SECRET, { expiresIn: '1h' });
+            response.cookie('accessToken', newAccessToken, { httpOnly: true });
+            return response.status(200).send('New access token created');
+        } catch (error) {
+            response.cookie('refreshToken', " ", { httpOnly: true });
+            return response.status(401).send('Unauthorized');
+        }
+    }
+});
+ app.get('/',async (request,response)=>{
+    const players= await Player.find()
+    response.send(players)
+ })
+ app.get('/logout',(request,response)=>{
+    response.cookie('refreshToken', " ", { httpOnly: true });
+    response.cookie('accessToken', " ", { httpOnly: true });
+    response.status(200).send('User logged out');
+ })
+
+ 
+ 
+ app.post('/register', async (request, response) => {
+    try {
+        const { userName, password } = request.body;
+
+        if (!userName || !password) {
+            return response.status(403).send('Fill up your username and password');
+        }
+
+        const player = await Player.findOne({ userName });
+console.log(player);
+        if (player) {
+            return response.status(403).send('User already exists');
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const cryptedPassword = await bcrypt.hash(password, salt);
+const jwtToken = jwt.sign({ userName }, process.env.JWT_REFRESH_SECRET);
+        const newPlayer = new Player({
+            userName,
+            password: cryptedPassword,
+            refreshToken: jwtToken
+        });
+console.log(newPlayer);
+        await newPlayer.save();
+response.cookie('refreshToken',newPlayer.refreshToken, { httpOnly: true });
+        response.status(200).send('User created');
+    } catch (error) {
+        console.log(error.message);
+        response.status(500).send({ message: error.message });
+    }
+});
+ 
+ 
+
 
 // Connect to MongoDB and Start Server
 mongoose
     .connect(process.env.MONGO_CONNECTION_STRING)
     .then(() => {
-        app.listen(process.env.PORT, () => {
-            console.log(`app is listening to port : ${process.env.PORT}`);
+        console.log('connected to mongoDB');
+        
+    })
+    .then(() => {
+        app.listen(process.env.LOG_IN_PORT, () => {
+            console.log(`app is listening to port : ${process.env.LOG_IN_PORT}`);
         });
     })
     .catch((error) => {

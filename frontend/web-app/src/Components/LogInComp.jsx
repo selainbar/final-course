@@ -4,23 +4,35 @@ import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import Closer from './Closer';
 import Header from './Header';
+import { useContext } from 'react';
+import { UserContext } from '../UserContext';
+import cookies from 'js-cookie';
 
 axios.defaults.withCredentials=true;
 function LogInComp() {
+  const { user, setUser } = useContext(UserContext);
+  
   const [userName, setUserName] = useState('');
   const navigate=useNavigate();
   const [password, setPassword] = useState('');
-
+const [isFormValid, setIsFormValid] = useState(false);
+useEffect(() => {
+ 
+  setIsFormValid(userName && password);
+}, [userName, password]);
 
 const handleSubmit = async (event) => {
   event.preventDefault();
   try {
-    const response = await axios.post('http://localhost:5555/access_token', {
+    const response = await axios.post('http://localhost:5555/userRefresh_token', {
       userName,
       password,
     });
 if(response.status===200){
 console.log("connected")
+setUser({userName:userName,status:'online'});
+
+handleClickToVerify(event)
   }
    } catch (error) {
     console.error('There was an error!', error);
@@ -31,7 +43,6 @@ console.log("connected")
     try{
       console.log('click');
       const response= await axios.get('http://localhost:5555/JWTvalid',{withCredentials:true})
-       console.log(response.data);
        if (response.status === 200) {
         navigate('/Lobby');
     }}
@@ -64,11 +75,11 @@ console.log("connected")
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <button type="submit">LOG-IN</button>
+        <button type="submit" disabled={!isFormValid} style={{ backgroundColor: isFormValid ? '' : 'grey' }}>LOG-IN</button>
       </form>
-        <button onClick={handleClickToVerify}>to verify</button>
     </div>
         <Closer/>
+
         </>
   );
 }
