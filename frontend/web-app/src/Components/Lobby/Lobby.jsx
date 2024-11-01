@@ -56,7 +56,7 @@ function Lobby() {
 
   // Define the Message 
   const Message = ({ userName, message, time }) => (
-    <div style={{ marginBottom: '10px', color: userName === Cookies.get('userName') ? 'red' : 'black' }}>
+    <div style={{ marginBottom: '10px', color: userName === Cookies.get('user') ? 'red' : 'black' }}>
       <strong>{userName}:</strong> {message } <span style={{ fontSize: '0.8em', color: 'gray' }}>{time}</span>
     </div>
   );

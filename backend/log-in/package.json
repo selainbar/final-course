@@ -6,7 +6,7 @@
   "main": "log-in.js",
   "scripts": {
     "dev": "nodemon log-in.js",
-    "start": "node log-in.js",
+    "start": "node log-in.js"
   
   },
   "keywords": [],

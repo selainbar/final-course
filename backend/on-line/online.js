@@ -23,13 +23,18 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.json());
+class Player {
+    constructor({ userName, status }) {
+        this.userName = userName;
+        this.status = status;
+    }
+}
+
 const onlinePlayers = [];
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
-
     
-
+    
     socket.on('connected', (userName) => {
         try {
             console.log(`User ${userName} is connected`);
@@ -37,7 +42,10 @@ io.on('connection', (socket) => {
             onlinePlayers.push(player);
             io.emit('statusChange',onlinePlayers);
         } catch (error) {
-            console.error('Error handling connected event:', error);
+const playerIndex = onlinePlayers.findIndex((player) => player.userName === userName);
+if (playerIndex !== -1) {
+    onlinePlayers[playerIndex].status = 'inGame';
+}
         }
     });
     // Define the 'inGame' event
