@@ -44,7 +44,16 @@ handleClickToVerify(event)
       console.log('click');
       const response= await axios.get('http://localhost:5555/JWTvalid',{withCredentials:true})
        if (response.status === 200) {
-        navigate('/Lobby');
+        const playersOnline=axios.get('http://localhost:8989/Players',{withCredentials:true});
+        console.log(playersOnline);
+        cookies.set('user',userName);
+        const isOnline=(await playersOnline).data.find((player)=>player.userName===userName);
+        if(isOnline){ 
+          alert('User is already online');
+        }
+        else{
+          navigate('/Lobby');
+        }
     }}
     catch (error){
       console.error('there was an error!', error)
