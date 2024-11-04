@@ -26,8 +26,6 @@ errorElement:<NotFoundPage/>
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <UserProvider value={{user:{userName:'',status:''}}}>
-  <React.StrictMode>
     <RouterProvider router={router}/>
-  </React.StrictMode>,
   </UserProvider>
 )

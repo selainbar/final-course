@@ -15,7 +15,7 @@ function Lobby() {
   const navigate = useNavigate();
   const user = Cookies.get('user');
 
-  const [Players, setPlayers] = useState([{ userName: 'selainbar', status: 'online' }, { userName: 'selainbar2', status: 'online' }]);
+  const [Players, setPlayers] = useState([]);
   const [Messeges, setMesseges] = useState([{ userName: 'selainbar', time: '10/04/2000 00:00', message: 'welcome to my lobby' }]);
   
   const [userName, setUserName] = useState('');
@@ -23,7 +23,7 @@ function Lobby() {
   useEffect(() => {
     //online connection
     const onlineSocket = io('http://localhost:8989',{withCredentials:true});
-    onlineSocket.emit('connected', { userName:user });
+    onlineSocket.emit('connected', ( user ));
     //chat connection
 
    /* const chatSocket = io('http://localhost:3000');

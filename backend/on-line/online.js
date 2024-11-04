@@ -35,30 +35,15 @@ const onlinePlayers = [];
 io.on('connection', (socket) => {
     
     
-    socket.on('connected', (userName) => {
+    socket.on('connected', (user) => {
         try {
-            console.log(`User ${userName} is connected`);
-            const player=new player({userName:userName,status:'online'});
+            const player = new Player({ userName: user, status: 'online' });
             onlinePlayers.push(player);
             io.emit('statusChange',onlinePlayers);
         } catch (error) {
-const playerIndex = onlinePlayers.findIndex((player) => player.userName === userName);
-if (playerIndex !== -1) {
-    onlinePlayers[playerIndex].status = 'inGame';
-}
-        }
-    });
-    // Define the 'inGame' event
-    socket.on('inGame', (userName) => {
-        try {
-            console.log(`User ${userName} is in the game`);
-onlinePlayers.findIndex((player)=>player.userName===userName).status='inGame';
-            io.emit('statusChange', onlinePlayers);
-        } catch (error) {
-            console.error('Error handling inGame event:', error);
-        }
-    });
-
+            console.error('Error handling connected event:', error);
+        }   
+});
     socket.on('disconnect', (userName) => {
         try {
             console.log('user disconnected');
@@ -66,7 +51,7 @@ onlinePlayers.findIndex((player)=>player.userName===userName).status='inGame';
             onlinePlayers.splice(playerIndex,1);
             io.emit('statusChange', onlinePlayers);
         } catch (error) {
-            console.error('Error handling disconnect event:', error);
+            console.error(' on disconnectiong Error handling disconnect event:', error);
         }
     });
 });
