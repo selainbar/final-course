@@ -24,7 +24,6 @@ function Lobby() {
     //online connection
     const onlineSocket = io('http://localhost:8989',{withCredentials:true});
     onlineSocket.emit('connected', { userName:user });
-    console.log(user,"emited")
     //chat connection
 
    /* const chatSocket = io('http://localhost:3000');
@@ -37,6 +36,7 @@ function Lobby() {
     */
     onlineSocket.on('statusChange', (updatedList) => {
       setPlayers(updatedList);
+      console.log(updatedList);
     });
     
     
@@ -65,7 +65,7 @@ function Lobby() {
   const Player = ({ userName, status }) => (
     <div style={{ marginBottom: '10px', color: 'black' }}>
       <strong>{userName}</strong> 
-      {userName === userName.userName ? (
+      {userName === user ? (
         <span style={{ marginLeft: '10px', color: 'blue' }}>You</span>
       ) : status === 'online' ? (
         <button style={{ marginLeft: '10px' }}>Play</button>
@@ -112,7 +112,7 @@ function Lobby() {
       }}
     >
       {players
-        .filter(player => player.userName !== Cookies.get('userName'))
+        
         .map((player, index) => (
           <Player 
           key={index} 
