@@ -56,6 +56,10 @@ io.on('connection', (socket) => {
     });
 });
 
+app.get('/Players', (request, response) => {
+    response.send(onlinePlayers);
+});
+
 const PORT = process.env.PORT || 8989;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

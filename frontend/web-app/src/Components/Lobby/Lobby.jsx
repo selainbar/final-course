@@ -20,7 +20,29 @@ function Lobby() {
   
   const [userName, setUserName] = useState('');
   
+
+  const checkTokens = async () => {
+    try {
+      const response = await axios.get('http://localhost:5555/checkTokens', { withCredentials: true });
+      console.log(response.status);
+      if (response.status !== 200) {
+        Cookies.remove('user');
+      }
+      return response.status;
+    } catch (error) {
+      console.error('Error checking tokens:', error);
+      Cookies.remove('user');
+      return 401; // Return 401 on error for consistency
+    }
+  };
+
   useEffect(() => {
+   
+    checkTokens()
+      .then(validUser => {
+        if (validUser !== 200) {
+          navigate('/');
+        } else {
     //online connection
     const onlineSocket = io('http://localhost:8989',{withCredentials:true});
     onlineSocket.emit('connected', ( user ));
@@ -39,7 +61,8 @@ function Lobby() {
       console.log(updatedList);
     });
     
-    
+  }
+  });
   }, []);
   
   
