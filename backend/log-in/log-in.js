@@ -117,17 +117,15 @@ app.get('/checkTokens', (request, response) => {
         }
     }
 });
- app.get('/',async (request,response)=>{
-    const players= await Player.find()
-    response.send(players)
- })
+
+
  app.get('/logout',(request,response)=>{
-    response.cookie('refreshToken', " ", { httpOnly: true });
-    response.cookie('accessToken', " ", { httpOnly: true });
+    response.cookie('refreshToken', "", { httpOnly: true });
+    response.cookie('accessToken', "", { httpOnly: true });
+    response.cookie('user', "", { httpOnly: false });
     response.status(200).send('User logged out');
  })
 
- 
  
  app.post('/register', async (request, response) => {
     try {
@@ -172,8 +170,8 @@ mongoose
         
     })
     .then(() => {
-        app.listen(process.env.LOG_IN_PORT, () => {
-            console.log(`app is listening to port : ${process.env.LOG_IN_PORT}`);
+        app.listen(process.env.PORT, () => {
+            console.log(`app is listening to port : ${process.env.PORT}`);
         });
     })
     .catch((error) => {

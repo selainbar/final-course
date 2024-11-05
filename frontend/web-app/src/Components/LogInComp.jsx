@@ -50,6 +50,8 @@ handleClickToVerify(event)
         const isOnline=(await playersOnline).data.find((player)=>player.userName===userName);
         if(isOnline){ 
           alert('User is already online');
+          console.log(isOnline);
+          console.log()
         }
         else{
           navigate('/Lobby');

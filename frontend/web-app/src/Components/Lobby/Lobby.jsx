@@ -2,11 +2,8 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import { useEffect } from 'react'
-// import socketclient from 'socket.io-client' (remove this line)
 import { useState } from 'react'
 import axios from 'axios'
-import { useContext } from 'react';
-import { UserContext } from '../../UserContext';
 import Cookies from 'js-cookie';
 
 axios.defaults.withCredentials=true;
@@ -14,17 +11,18 @@ axios.defaults.withCredentials=true;
 function Lobby() {
   const navigate = useNavigate();
   const user = Cookies.get('user');
+  
 
   const [Players, setPlayers] = useState([]);
-  const [Messeges, setMesseges] = useState([{ userName: 'selainbar', time: '10/04/2000 00:00', message: 'welcome to my lobby' }]);
+  const [Messeges, setMesseges] = useState([]);
   
-  const [userName, setUserName] = useState('');
+  const onlineSocket = io('http://localhost:8989',{withCredentials:true});
+  const chatSocket = io('http://localhost:3000',{withCredentials:true});
   
 
   const checkTokens = async () => {
     try {
       const response = await axios.get('http://localhost:5555/checkTokens', { withCredentials: true });
-      console.log(response.status);
       if (response.status !== 200) {
         Cookies.remove('user');
       }
@@ -36,6 +34,34 @@ function Lobby() {
     }
   };
 
+  const connectingToChat=async()=>{
+    try{
+      checkTokens()
+      .then(validUser => {
+        if (validUser !== 200) {
+          navigate('/');
+        } else {
+const response=axios.get('http://localhost:3000/Players',{withCredentials:true});      
+console.log(response);
+const Players=response.data;
+if(Players.some((player)=>player.userName===user)){
+  return true;
+}
+  else{
+    return false;
+  }
+
+}
+});
+
+    }
+
+
+    catch(error){
+      console.error('There was an error!', error);
+    } 
+  }
+
   useEffect(() => {
    
     checkTokens()
@@ -44,25 +70,26 @@ function Lobby() {
           navigate('/');
         } else {
     //online connection
-    const onlineSocket = io('http://localhost:8989',{withCredentials:true});
     onlineSocket.emit('connected', ( user ));
     //chat connection
 
-   /* const chatSocket = io('http://localhost:3000');
-    chatSocket.emit('connected', { userName:user  });
-
-    chatSocket.on('message', (message) => {
-      setMesseges((prevMessages) => [...prevMessages, message]);
-    });
-
-    */
+    
     onlineSocket.on('statusChange', (updatedList) => {
       setPlayers(updatedList);
       console.log(updatedList);
     });
     
   }
-  });
+});
+if(connectingToChat()){
+  console.log('connected to chat')
+  chatSocket.emit('connected', (user));
+}
+
+chatSocket.on('message', (message) => {
+  console.log('message received:', message);
+  setMesseges((prevMessages) => [...prevMessages, message]);
+});
   }, []);
   
   
@@ -72,15 +99,18 @@ function Lobby() {
     })
     if(response.status===200){
       console.log('loged out')
+      onlineSocket.disconnect()
+      chatSocket.disconnect(user)
+     navigate('/');
+      alert('You have been logged out');
     };
-    
-    navigate('/');
+  
   };
 
   // Define the Message 
-  const Message = ({ userName, message, time }) => (
-    <div style={{ marginBottom: '10px', color: userName === Cookies.get('user') ? 'red' : 'black' }}>
-      <strong>{userName}:</strong> {message } <span style={{ fontSize: '0.8em', color: 'gray' }}>{time}</span>
+  const Message = ({ sender, content, time }) => (
+    <div style={{ marginBottom: '10px', color: sender === Cookies.get('user') ? 'red' : 'black' }}>
+      <strong>{sender}:</strong> {content } <span style={{ fontSize: '0.8em', color: 'gray' }}>{time}</span>
     </div>
   );
 
@@ -98,11 +128,11 @@ function Lobby() {
     </div>
   );
   // Define the formatMessage function
-  const formatMessage = (message) => {
+  const formatMessage = (content) => {
     const maxLength = 20;
-    if (message.length <= maxLength) return message;
+    if (content.length <= maxLength) return content;
     
-    const words = message.split(' ');
+    const words = content.split(' ');
     let formattedMessage = '';
     let currentLine = '';
     
@@ -151,11 +181,10 @@ function Lobby() {
 
   // Define the handleSendClick function
   const handleSendClick = () => {
-   /* if (!messageInput) return;
-    const chatSocket = io('http://localhost:3000');
-    chatSocket.emit('sendMessage', { userName: user, message: messageInput, time: new Date().toLocaleTimeString() });
+    if (!messageInput) return;
+    chatSocket.emit('messageSent', { sender: user, content: messageInput, time: new Date().toLocaleTimeString() });
     setMessageInput('');
-  */
+  
     };
 
   return (
@@ -176,8 +205,8 @@ function Lobby() {
             {Messeges.map((msg, index) => (
               <Message 
                 key={index} 
-                userName={msg.userName} 
-                message={msg.message} 
+                sender={msg.sender} 
+                content={msg.content} 
                 time={msg.time} 
               />
             ))}
