@@ -21,7 +21,12 @@ const router =createBrowserRouter([{
 path:'/SignUp',
 element:<SignUpComp/>,
 errorElement:<NotFoundPage/>
+},
+{
+  path:'*',
+  element:<NotFoundPage/>
 }
+
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(

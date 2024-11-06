@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useState } from 'react'
 import axios from 'axios'
 import Cookies from 'js-cookie';
-
+import Closer from '../Closer'
 axios.defaults.withCredentials=true;
 
 function Lobby() {
@@ -187,6 +187,13 @@ chatSocket.on('message', (message) => {
   
     };
 
+  // Define the handleStartGame function
+  const handleStartGame = () => {
+    alert('Game started!');
+    window.open('http://localhost:9000', '_blank');
+  };
+
+
   return (
     <>
       <div style={{ display: 'flex' }}>
@@ -213,6 +220,7 @@ chatSocket.on('message', (message) => {
           </div>
         </div>
         <OnlinePlayers players={Players} />
+        
         <button 
           onClick={handleLogoutClick} 
           style={{ position: 'absolute', top: '10px', left: '10px' }}
@@ -230,6 +238,10 @@ chatSocket.on('message', (message) => {
         />
         <button onClick={handleSendClick}>Send</button>
       </div>
+      <button onClick={handleStartGame}>
+        game
+      </button>
+      <Closer/>
     </>
   );
 
