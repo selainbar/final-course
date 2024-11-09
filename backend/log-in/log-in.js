@@ -44,7 +44,7 @@ app.post('/userRefresh_token', async (request, response) => {
         }        
         const match = await bcrypt.compare(password, player.password);
         if (!match) {
-            response.cookie('refreshToken', " ", { httpOnly: true });
+            response.cookie('refreshToken', "", { httpOnly: true });
             return response.status(403).send('User not found');
         }
         
