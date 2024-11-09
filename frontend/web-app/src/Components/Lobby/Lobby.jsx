@@ -18,9 +18,9 @@ function Lobby() {
   const [user, setUser] = useState({ user:'',status:'', id: '' });
 const savedUserName = Cookies.get('user');
   
-  const onlineSocket = io('http://localhost:8989',{withCredentials:true});
-  const chatSocket = io('http://localhost:3000',{withCredentials:true});
-  const gameSocket = io('http://localhost:4000',{withCredentials:true});
+  let onlineSocket;
+  let chatSocket;
+  let gameSocket;
 
   const checkTokens = async () => {
     try {
@@ -37,22 +37,30 @@ const savedUserName = Cookies.get('user');
   };
 
   useEffect(() => { // Function to initialize sockets and events 
-    const initializeSockets = async () => { const validUser = await checkTokens(); if (validUser !== 200) { navigate('/'); window.location.reload(); } else { await getMessages(); 
+    const initializeSockets = async () => {
+      onlineSocket = io('http://localhost:8989', { withCredentials: true });
+      chatSocket = io('http://localhost:3000', { withCredentials: true });
+      gameSocket = io('http://localhost:4000', { withCredentials: true, query: { userName: savedUserName } });
+
+      const validUser = await checkTokens();
+      if (validUser !== 200) {
+        navigate('/');
+        window.location.reload();
+      } else {
+        await getMessages();
+
+
       // Ensure gameSocket is connected before emitting events
-       gameSocket.connect(); gameSocket.emit('connected', Cookies.get('user')); 
+       gameSocket.connect();
        // Set up event listeners for gameSocket 
-       gameSocket.on('socketInfo', (socketInfo) => {
-         console.log('Socket info:', socketInfo);
-          if (socketInfo.user === Cookies.get('user')) {
-              setUser({ userName: socketInfo.userName, status: socketInfo.status, id: socketInfo.id });
-            } });
-             gameSocket.on('receive Invite', (sender, senderId, receiver) => {
+             gameSocket.on('Receive', (sender, receiver) => {
                console.log('Invite received from', sender, 'to', receiver);
                 const answer = window.confirm(`You have received an invite from ${sender}. Do you want to play?`);
-                 gameSocket.emit('answerInvite', receiver, sender, senderId, answer); });
-                  gameSocket.on('receiveAnswer', (receiver, answer) => {
+                 gameSocket.emit('answer', receiver, sender, answer); });
+                  gameSocket.on('start game', (receiver, answer) => {
                      console.log('Invite answer from', receiver, 'is', answer);
-                      if (answer) { handleStartGame(); } }); 
+                      if (answer) { handleStartGame();
+                       } }); 
 
 
 
@@ -62,20 +70,16 @@ const savedUserName = Cookies.get('user');
                         onlineSocket.on('statusChange', (updatedList) => {
                            setPlayers(updatedList); console.log(updatedList); });
                            
-                           // Ensure chatSocket is connected chatSocket.connect(); 
                            // Set up event listeners for chatSocket 
+                           chatSocket.emit('connected', savedUserName);
                            chatSocket.on('message', (message) => {
                              console.log('Message received:', message); 
                              setMessages((prevMessages) => [...prevMessages, message]);
                              }); } };
                              
-                             initializeSockets();
-                              return () => { 
-                                // Clean up socket connections on component unmount 
-                                onlineSocket.disconnect();
-                                chatSocket.disconnect();
-                                 gameSocket.disconnect();
-                                 }; }, []);
+                               initializeSockets();
+                           
+                                  }, []);
 
 
 
@@ -106,7 +110,7 @@ const savedUserName = Cookies.get('user');
  // Define the handleSendClick function
  const handleSendClick = () => {
   if (!messageInput) return;
-  chatSocket.emit('messageSent', { sender: user, content: messageInput, time: new Date().toLocaleTimeString() });
+  chatSocket.emit('messageSent', { sender: savedUserName, content: formatMessage(messageInput), time: new Date().toLocaleTimeString() });
   setMessageInput('');
 
   };
@@ -150,7 +154,7 @@ const savedUserName = Cookies.get('user');
         <span style={{ marginLeft: '10px', color: 'blue' }}>You</span>
       ) : player.status === 'online' ? (
         <button style={{ marginLeft: '10px' }}
-        onClick={()=>handlePlayClick(savedUserName,gameSocket.id,player.userName,player.gameSocketId)}>Play</button>
+        onClick={()=>handlePlayClick(savedUserName,player.userName)}>Play</button>
       ) : (
         <span style={{ marginLeft: '10px', color: 'gray' }}>In Game</span>
       )}
@@ -184,8 +188,13 @@ const savedUserName = Cookies.get('user');
     </div>
   );
 
- const handlePlayClick = (senderUserName,senderSocketId,recieverUserName,recieverSocketId) => {
-  gameSocket.emit('send invite', senderUserName,senderSocketId,recieverUserName,recieverSocketId);
+ const handlePlayClick = (senderUserName,recieverUserName) => {
+  if (gameSocket) {
+    gameSocket.emit('invite', senderUserName,recieverUserName);
+    console.log('Invite sent from', senderUserName, 'to', recieverUserName);
+  } else {
+    console.error('gameSocket is not defined');
+  }
 }
 
   // Define the handleStartGame function
@@ -235,7 +244,11 @@ const savedUserName = Cookies.get('user');
           placeholder="Type a message..." 
           style={{ flex: 1, marginRight: '10px' }} 
           value={messageInput}
-          onChange={(e) => setMessageInput(e.target.value)}
+          onChange={(e) => {
+            if (e.target.value.length <= 40) {
+              setMessageInput(e.target.value);
+            }
+          }}
         />
         <button onClick={handleSendClick}>Send</button>
       </div>

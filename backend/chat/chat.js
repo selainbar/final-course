@@ -15,7 +15,8 @@ const io = new Server(server,{
         origin: ['http://localhost:5173', 'http://localhost:5555', 'http://localhost:3000','http://localhost:8989'],
         methods: ['GET', 'POST'],
         credentials: true
-    }
+    },
+    maxHttpBufferSize: 1e8//100MB
 });
 
 app.use(cors({

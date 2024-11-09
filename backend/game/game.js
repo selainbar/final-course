@@ -24,32 +24,39 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.json());
+const gameData = {};
 
+app.set('gameData', gameData);
 
 
 io.on('connection', (socket) => {
-    console.log('Client connected to the game server', socket.id);
+  socket.user = socket.handshake.query.userName;
+  gameData[socket.user] = socket.id;
+  socket.join(socket.user);
+  console.log('Client connected to the game server', socket.user);
 
-    socket.on('connected', (userName) => {
-        socket.user = userName; 
-        console.log('user connected:', userName);
-    });
     
-  socket.on('send invite', (sender,senderId,reciever,recieverId) => {
-    console.log('Invite sent from', sender, 'to', reciever);
-    io.to(recieverId).emit('recieve invite', sender, senderId,reciever);
+  socket.on('invite', (sender, receiver) => {
+    console.log('Invite sent from', sender, 'to', receiver);
+    if (gameData[receiver]) {
+      socket.to(gameData[receiver]).emit('Receive', sender, receiver);
+      console.log('Invite sent from', sender, 'at', gameData[sender], 'to', receiver, 'at', gameData[receiver]);
+      socket.join(receiver);
+    } else {
+      console.log('Receiver not found in gameData');
+    }
   });
 
-  socket.on('answer invite', (reciever,sender,senderId,answer) => {
-    console.log('Invite answer from', reciever, 'is', answer);
+  socket.on('answer', (receiver, sender, senderId, answer) => {
+    console.log('Invite answer from', receiver, 'is', answer);
     if(answer){
-      io.emit('start game', reciever,sender,senderId);
+      io.emit('start game', receiver, sender, senderId);
     }
-    io.emit('recieve answer', reciever,answer);
+    io.emit('declined game', receiver, answer);
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected from the game server');
+    console.log( socket.user,'disconnected from the game server');
   });
 
 
