@@ -82,7 +82,7 @@ app.get('/checkTokens', (request, response) => {
 
     if (!accessToken) {
         if (!refreshToken) {
-            response.cookie('refreshToken', " ", { httpOnly: true });
+            response.cookie('refreshToken', "", { httpOnly: true });
             return response.status(401).send('Unauthorized');
         }
 

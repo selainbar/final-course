@@ -18,7 +18,6 @@ const io = new Server(server,{
     }
 });
 
-
 app.use(cors({
     origin: ['http://localhost:5173', 'http://localhost:5555', 'http://localhost:3000', 'http://localhost:8989'],
     credentials: true,
@@ -28,13 +27,11 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-
-io.on('connection', (socket) => {    
+io.on('connection', (socket) => {   
+    console.log('Client connected to the chat server'); 
     socket.on('connected', (user) => {
         console.log('user connected:', user);
         socket.user = user; // Store user information in socket object
-        const newMessage = {sender:user, content:`${user} has joined the chat`, time: new Date()};
-        io.emit('message', newMessage); 
     });
 
     socket.on('messageSent', async (message) => {
@@ -43,36 +40,36 @@ io.on('connection', (socket) => {
             const newMessage = new Message(message);
             await newMessage.save();
             io.emit('message', message);
-        
         } catch (error) {
             console.error('Error handling message event:', error);
         }
     });
-  // Handle user disconnection
-   socket.on('disconnect', () => { 
-    if (socket.user) 
-        { console.log('user disconnected:', socket.user); 
-            const newMessage = {sender: socket.user, content: `${socket.user} has left the chat`, time: new Date()}; 
-            io.emit('message', newMessage); 
-        } 
-        else { 
-            console.log('user disconnected without being identified'); } });
-    });
 
+socket.on('disconnect', () => {
+    console.log('user disconnected:', socket.user);
+    socket.user = null;
+    socket.disconnect(true);
+});
+ 
+});
 
-
-
+app.get('/messages', async (request, response) => {
+    try {
+        const messages = await Message.find();
+        response.json(messages);
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        response.status(500).send('Error fetching messages');
+    }
+});
 
 // Connect to MongoDB and Start Server
 mongoose
     .connect(process.env.MONGO_CONNECTION_STRING)
     .then(() => {
-        console.log('connected to mongoDB');
-        
-    })
-    .then(() => {
+        console.log('connected to MongoDB');
         server.listen(process.env.PORT, () => {
-            console.log(`app is listening to port : ${process.env.PORT}`);
+            console.log(`Chat server is listening on port: ${process.env.PORT}`);
         });
     })
     .catch((error) => {

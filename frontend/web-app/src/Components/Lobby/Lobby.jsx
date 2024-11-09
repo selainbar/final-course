@@ -10,15 +10,17 @@ axios.defaults.withCredentials=true;
 
 function Lobby() {
   const navigate = useNavigate();
-  const user = Cookies.get('user');
   
 
   const [Players, setPlayers] = useState([]);
-  const [Messeges, setMesseges] = useState([]);
+  const [Messages, setMessages] = useState([]);
+  const [messageInput, setMessageInput] = useState('');
+  const [user, setUser] = useState({ user:'',status:'', id: '' });
+const savedUserName = Cookies.get('user');
   
   const onlineSocket = io('http://localhost:8989',{withCredentials:true});
   const chatSocket = io('http://localhost:3000',{withCredentials:true});
-  
+  const gameSocket = io('http://localhost:4000',{withCredentials:true});
 
   const checkTokens = async () => {
     try {
@@ -34,64 +36,49 @@ function Lobby() {
     }
   };
 
-  const connectingToChat=async()=>{
-    try{
-      checkTokens()
-      .then(validUser => {
-        if (validUser !== 200) {
-          navigate('/');
-        } else {
-const response=axios.get('http://localhost:3000/Players',{withCredentials:true});      
-console.log(response);
-const Players=response.data;
-if(Players.some((player)=>player.userName===user)){
-  return true;
-}
-  else{
-    return false;
-  }
-
-}
-});
-
-    }
+  useEffect(() => { // Function to initialize sockets and events 
+    const initializeSockets = async () => { const validUser = await checkTokens(); if (validUser !== 200) { navigate('/'); window.location.reload(); } else { await getMessages(); 
+      // Ensure gameSocket is connected before emitting events
+       gameSocket.connect(); gameSocket.emit('connected', Cookies.get('user')); 
+       // Set up event listeners for gameSocket 
+       gameSocket.on('socketInfo', (socketInfo) => {
+         console.log('Socket info:', socketInfo);
+          if (socketInfo.user === Cookies.get('user')) {
+              setUser({ userName: socketInfo.userName, status: socketInfo.status, id: socketInfo.id });
+            } });
+             gameSocket.on('receive Invite', (sender, senderId, receiver) => {
+               console.log('Invite received from', sender, 'to', receiver);
+                const answer = window.confirm(`You have received an invite from ${sender}. Do you want to play?`);
+                 gameSocket.emit('answerInvite', receiver, sender, senderId, answer); });
+                  gameSocket.on('receiveAnswer', (receiver, answer) => {
+                     console.log('Invite answer from', receiver, 'is', answer);
+                      if (answer) { handleStartGame(); } }); 
 
 
-    catch(error){
-      console.error('There was an error!', error);
-    } 
-  }
 
-  useEffect(() => {
-   
-    checkTokens()
-      .then(validUser => {
-        if (validUser !== 200) {
-          navigate('/');
-        } else {
-    //online connection
-    onlineSocket.emit('connected', ( user ));
-    //chat connection
+                      // Ensure onlineSocket is connected before emitting events
+                        onlineSocket.emit('connected', { userName: savedUserName, gameSocketId: gameSocket.id }); 
+                        // Set up event listeners for onlineSocket 
+                        onlineSocket.on('statusChange', (updatedList) => {
+                           setPlayers(updatedList); console.log(updatedList); });
+                           
+                           // Ensure chatSocket is connected chatSocket.connect(); 
+                           // Set up event listeners for chatSocket 
+                           chatSocket.on('message', (message) => {
+                             console.log('Message received:', message); 
+                             setMessages((prevMessages) => [...prevMessages, message]);
+                             }); } };
+                             
+                             initializeSockets();
+                              return () => { 
+                                // Clean up socket connections on component unmount 
+                                onlineSocket.disconnect();
+                                chatSocket.disconnect();
+                                 gameSocket.disconnect();
+                                 }; }, []);
 
-    
-    onlineSocket.on('statusChange', (updatedList) => {
-      setPlayers(updatedList);
-      console.log(updatedList);
-    });
-    
-  }
-});
-if(connectingToChat()){
-  console.log('connected to chat')
-  chatSocket.emit('connected', (user));
-}
 
-chatSocket.on('message', (message) => {
-  console.log('message received:', message);
-  setMesseges((prevMessages) => [...prevMessages, message]);
-});
-  }, []);
-  
+
   
   const handleLogoutClick = async () => {
     const response = await axios.get('http://localhost:5555/logout', {
@@ -99,9 +86,11 @@ chatSocket.on('message', (message) => {
     })
     if(response.status===200){
       console.log('loged out')
+      gameSocket.disconnect()
       onlineSocket.disconnect()
       chatSocket.disconnect(user)
      navigate('/');
+      window.location.reload();
       alert('You have been logged out');
     };
   
@@ -114,19 +103,14 @@ chatSocket.on('message', (message) => {
     </div>
   );
 
-  // Define the Player
-  const Player = ({ userName, status }) => (
-    <div style={{ marginBottom: '10px', color: 'black' }}>
-      <strong>{userName}</strong> 
-      {userName === user ? (
-        <span style={{ marginLeft: '10px', color: 'blue' }}>You</span>
-      ) : status === 'online' ? (
-        <button style={{ marginLeft: '10px' }}>Play</button>
-      ) : (
-        <span style={{ marginLeft: '10px', color: 'gray' }}>In Game</span>
-      )}
-    </div>
-  );
+ // Define the handleSendClick function
+ const handleSendClick = () => {
+  if (!messageInput) return;
+  chatSocket.emit('messageSent', { sender: user, content: messageInput, time: new Date().toLocaleTimeString() });
+  setMessageInput('');
+
+  };
+
   // Define the formatMessage function
   const formatMessage = (content) => {
     const maxLength = 20;
@@ -149,7 +133,29 @@ chatSocket.on('message', (message) => {
     return formattedMessage;
   };
 
-  
+  const getMessages = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/messages', { withCredentials: true });
+      setMessages(response.data);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+   // Define the Player
+   const Player = (player) => (
+    <div style={{ marginBottom: '10px', color: 'black' }}>
+      <strong>{player.userName}</strong> 
+      {player.userName === savedUserName ? (
+        <span style={{ marginLeft: '10px', color: 'blue' }}>You</span>
+      ) : player.status === 'online' ? (
+        <button style={{ marginLeft: '10px' }}
+        onClick={()=>handlePlayClick(savedUserName,gameSocket.id,player.userName,player.gameSocketId)}>Play</button>
+      ) : (
+        <span style={{ marginLeft: '10px', color: 'gray' }}>In Game</span>
+      )}
+    </div>
+  );
 
   // Define the OnlinePlayers component
   const OnlinePlayers = ({ players }) => (
@@ -171,21 +177,16 @@ chatSocket.on('message', (message) => {
           key={index} 
             userName={player.userName} 
             status={player.status} 
+            gameSocketId={player.gameSocketId}
             />
           ))
         }
     </div>
   );
 
-  const [messageInput, setMessageInput] = useState('');
-
-  // Define the handleSendClick function
-  const handleSendClick = () => {
-    if (!messageInput) return;
-    chatSocket.emit('messageSent', { sender: user, content: messageInput, time: new Date().toLocaleTimeString() });
-    setMessageInput('');
-  
-    };
+ const handlePlayClick = (senderUserName,senderSocketId,recieverUserName,recieverSocketId) => {
+  gameSocket.emit('send invite', senderUserName,senderSocketId,recieverUserName,recieverSocketId);
+}
 
   // Define the handleStartGame function
   const handleStartGame = () => {
@@ -209,7 +210,7 @@ chatSocket.on('message', (message) => {
             }}
             id="chat-container"
           >
-            {Messeges.map((msg, index) => (
+            {Messages.map((msg, index) => (
               <Message 
                 key={index} 
                 sender={msg.sender} 
