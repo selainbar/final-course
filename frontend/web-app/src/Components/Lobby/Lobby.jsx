@@ -15,7 +15,6 @@ function Lobby() {
   const [Players, setPlayers] = useState([]);
   const [Messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
-  const [user, setUser] = useState({ user:'',status:'', id: '' });
 const savedUserName = Cookies.get('user');
   
 const onlineSocket = useRef(null);
@@ -40,7 +39,16 @@ const gameSocket = useRef(null);
     const initializeSockets = async () => {
       onlineSocket.current = io('http://localhost:8989', { withCredentials: true });
       chatSocket.current = io('http://localhost:3000', { withCredentials: true });
-      gameSocket.current = io('http://localhost:4000', { withCredentials: true, query: { userName: savedUserName } });
+      gameSocket.current = io('http://localhost:4000', { 
+        withCredentials: true, 
+        query: { userName: savedUserName } 
+      });
+
+      gameSocket.current.on('connect_error', (err) => {
+        console.error('Connection error:', err);
+        alert('Failed to connect to the game server. Please try again later.');
+        navigate('/');
+      });
 
       const validUser = await checkTokens();
       if (validUser !== 200) {
@@ -54,11 +62,29 @@ const gameSocket = useRef(null);
              gameSocket.current.on('Receive', (sender, receiver) => {
                console.log('Invite received from', sender, 'to', receiver);
                 const answer = window.confirm(`You have received an invite from ${sender}. Do you want to play?`);
+
                  gameSocket.current.emit('answer', receiver, sender, answer); });
-                  gameSocket.current.on('start game', (receiver, answer) => {
+
+                  gameSocket.current.on('start game', (receiver, sender,answer) => {
+                    
                      console.log('Invite answer from', receiver, 'is', answer);
-                      if (answer) { handleStartGame();
+                     if (answer) {
+                         if(sender===savedUserName){
+                           Cookies.set('opponent', receiver);
+                       Cookies.set('myColor', 'white');}
+                        else{
+                          Cookies.set('myColor', 'black');
+                          Cookies.set('opponent', sender);
+                        }
+                         handleStartGame();
+chatSocket.current.disconnect();
+onlineSocket.current.disconnect();
+gameSocket.current.disconnect();
                        } }); 
+                        gameSocket.current.on('declined game', (receiver, answer) => {
+                          console.log('Invite declined by', receiver, 'with answer', answer);
+                            alert(`Invite declined by ${receiver} with answer ${answer}`);
+                        });
 
 
 
@@ -90,7 +116,7 @@ const gameSocket = useRef(null);
       console.log('loged out')
       gameSocket.current.disconnect()
       onlineSocket.current.disconnect()
-      chatSocket.current.disconnect(user)
+      chatSocket.current.disconnect()
      navigate('/');
       window.location.reload();
       alert('You have been logged out');
@@ -152,7 +178,7 @@ const gameSocket = useRef(null);
         <span style={{ marginLeft: '10px', color: 'blue' }}>You</span>
       ) : player.status === 'online' ? (
         <button style={{ marginLeft: '10px' }}
-        onClick={()=>handlePlayClick(savedUserName,player.userName)}>Play</button>
+        onClick={()=>handlePlayClick(savedUserName,player.userName)}  >Play</button>
       ) : (
         <span style={{ marginLeft: '10px', color: 'gray' }}>In Game</span>
       )}
@@ -190,6 +216,7 @@ const gameSocket = useRef(null);
   if (gameSocket) {
     gameSocket.current.emit('invite', senderUserName,recieverUserName);
     console.log('Invite sent from', senderUserName, 'to', recieverUserName);
+
   } else {
     console.error('gameSocket is not defined');
   }
