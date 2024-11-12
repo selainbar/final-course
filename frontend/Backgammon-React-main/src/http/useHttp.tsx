@@ -52,7 +52,7 @@ export const useHttpClient = (): HttpClientHook => {
     
     }
   )
-  const activeHttpRequests = useRef<CancelTokenSource[]>([]);
+//  const activeHttpRequests = useRef<CancelTokenSource[]>([]);
 
   const sendRequest = useCallback(
     async <T,>(
@@ -62,8 +62,8 @@ export const useHttpClient = (): HttpClientHook => {
       headers: Record<string, string> = {}
     ): Promise<T> => {
       setIsLoading(true);
-      const httpAbortCtrl = axios.CancelToken.source();
-      activeHttpRequests.current.push(httpAbortCtrl);
+     //const httpAbortCtrl = axios.CancelToken.source();
+     // activeHttpRequests.current.push(httpAbortCtrl); 
 
       //headers["Authorization"] = token ? `Bearer ${token}` : "";
 
@@ -73,13 +73,14 @@ export const useHttpClient = (): HttpClientHook => {
           url,
           data: body,
           headers,
-          cancelToken: httpAbortCtrl.token,
+      //    cancelToken: httpAbortCtrl.token,
         };
+        console.log(axiosRequestConfig);
         const response = await axios(axiosRequestConfig);
 
-        activeHttpRequests.current = activeHttpRequests.current.filter(
-          (reqCtrl) => reqCtrl !== httpAbortCtrl
-        );
+      //  activeHttpRequests.current = activeHttpRequests.current.filter(
+     //     (reqCtrl) => reqCtrl !== httpAbortCtrl
+    //   );
 
         setIsLoading(false);
         return response.data;
@@ -133,13 +134,13 @@ export const useHttpClient = (): HttpClientHook => {
   }
 
 
-  useEffect(() => {
-    return () => {
-      activeHttpRequests.current.forEach((abortCtrl) =>
-        abortCtrl.cancel("React component unmounted.")
-      );
-    };
-  }, []);
+//  useEffect(() => {
+ //   return () => {
+   //   activeHttpRequests.current.forEach((abortCtrl) =>
+   //     abortCtrl.cancel("React component unmounted.")
+      //);
+  //  };
+//  }, []);
 
   return { isLoading, error, sendRequest, clearError, joinGame };
 };

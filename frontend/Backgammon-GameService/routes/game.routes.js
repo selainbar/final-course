@@ -10,7 +10,6 @@ import {
   saveGame,
   getUserDetails,
 } from "../controllers/game.controller.js";
-import { auth } from "../middlewares/auth.js";
 
 const router = express.Router();
 

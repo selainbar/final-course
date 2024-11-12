@@ -68,16 +68,12 @@ const gameSocket = useRef(null);
                     
                      console.log('Invite answer from', receiver, 'is', answer);
                      if (answer) {
-                         if(sender===savedUserName){
-                           Cookies.set('opponent', receiver);
-                       Cookies.set('myColor', 'white');}
-                        else{
-                          Cookies.set('myColor', 'black');
-                          Cookies.set('opponent', sender);
-                        }
-                         handleStartGame(sender,receiver);
 
-                       } }); 
+                       const opponent = receiver === savedUserName ? sender : receiver;
+                       handleStartGame(savedUserName,opponent);
+                       
+                      }
+                      } ); 
                         gameSocket.current.on('declined game', (receiver, answer) => {
                           console.log('Invite declined by', receiver, 'with answer', answer);
                             alert(`Invite declined by ${receiver} with answer ${answer}`);
@@ -220,9 +216,9 @@ const gameSocket = useRef(null);
 }
 
   // Define the handleStartGame function
-  const handleStartGame = (sender,receiver) => {
+  const handleStartGame = (user,opponent) => {
     alert('Game started!');
-    window.open(`http://localhost:5174/game/${sender}&${receiver}`);
+    window.open(`http://localhost:5174/game/${user}&${opponent}`);
   };
 
   return (

@@ -52,7 +52,6 @@ io.on('connection', (socket) => {
       io.to([gameData[sender], gameData[receiver]]).emit('start game', receiver, sender, answer);
     } else {
       io.to(gameData[sender]).emit('declined game', receiver, answer);
-      answer=null;
     }
   });
 // Join or create a game room based on opponent's name

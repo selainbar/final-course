@@ -15,7 +15,7 @@ export async function userJoin(req, res, next) {
     if (!username || !opponent || socketId === "")
       return res.status(404).send("Bad request");
     const gameId = getGameId(username, opponent);
-    console.log("entering " + gameId + `Date is ${Date.now()}`);
+    console.log("entering " + gameId + ` Date is ${Date.now()}`);
     if (
       openGames[gameId] &&
       openGames[gameId].onlineUsers &&
@@ -31,9 +31,11 @@ export async function userJoin(req, res, next) {
       },
     };
     usernameToSocketIdMap[username] = socketId;
+    console.log(usernameToSocketIdMap,"line 34");
     if (!usernameToSocketIdMap[opponent]) return res.status(200);
-
+console.log("emitting user connection");
     socketEmit("user-connection", "", usernameToSocketIdMap[opponent]);
+    console.log("emitting oppoenet connection");
     res.status(200).send({ success: true });
   } catch (err) {
     console.log(err);

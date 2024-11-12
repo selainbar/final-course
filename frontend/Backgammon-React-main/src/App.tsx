@@ -51,7 +51,7 @@ function App() {
       console.log(username);
       console.log(socket.id);
       console.log(opponent);
-      const joinSuccessful = await joinGame(username, opponent, 'room1');
+      const joinSuccessful = await joinGame(username, opponent, socket.id);
       if (!joinSuccessful) {
         toast.error(
           "Could not join game or game is currently on, try again later."

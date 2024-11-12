@@ -120,16 +120,26 @@ export async function notifyChangeTurn(
   }
 }
 
-export async function requestUserSelect(username: string, opponent: string, gameJSON: string): Promise<boolean> {
+export async function requestUserSelect(
+  username: string,
+  opponent: string,
+  json: string
+): Promise<boolean | undefined> {
   try {
-    const response = await axios.post('http://localhost:4000/user-select', {
+    const response = await axiosInstance.post("/select", {
       username,
       opponent,
-      gameJSON,
+      json,
     });
-    return response.status === 200;
-  } catch (error) {
-    console.error('Error in requestUserSelect:', error);
+    console.log(response);
+    if (response.status !== 200) throw new Error("Failed to send select event");
+    console.log(response.data);
+    return true;
+  } catch (err) {
+    console.error(err);
+    if (axios.isCancel(err)) {
+      console.error("SELECT REQUEST TIMED OUT: ", err);
+    }
     return false;
   }
 }
