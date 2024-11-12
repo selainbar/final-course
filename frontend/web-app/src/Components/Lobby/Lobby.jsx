@@ -61,8 +61,7 @@ const gameSocket = useRef(null);
        // Set up event listeners for gameSocket 
              gameSocket.current.on('Receive', (sender, receiver) => {
                console.log('Invite received from', sender, 'to', receiver);
-                const answer = window.confirm(`You have received an invite from ${sender}. Do you want to play?`);
-
+                const answer = window.confirm(`Accept invite from ${sender}?`);
                  gameSocket.current.emit('answer', receiver, sender, answer); });
 
                   gameSocket.current.on('start game', (receiver, sender,answer) => {
@@ -76,10 +75,8 @@ const gameSocket = useRef(null);
                           Cookies.set('myColor', 'black');
                           Cookies.set('opponent', sender);
                         }
-                         handleStartGame();
-chatSocket.current.disconnect();
-onlineSocket.current.disconnect();
-gameSocket.current.disconnect();
+                         handleStartGame(sender,receiver);
+
                        } }); 
                         gameSocket.current.on('declined game', (receiver, answer) => {
                           console.log('Invite declined by', receiver, 'with answer', answer);
@@ -223,11 +220,10 @@ gameSocket.current.disconnect();
 }
 
   // Define the handleStartGame function
-  const handleStartGame = () => {
+  const handleStartGame = (sender,receiver) => {
     alert('Game started!');
-    window.open('http://localhost:9000', '_blank');
+    window.open(`http://localhost:5174/game/${sender}&${receiver}`);
   };
-
 
   return (
     <>
