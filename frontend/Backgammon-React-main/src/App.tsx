@@ -128,7 +128,8 @@ function App() {
           >
             <Button
               style={{ backgroundColor: "#904E55", color: "#fff" }}
-              onClick={() => window.close()}
+              onClick={() =>{handleOpponentLeft(username); window.location.href=`http://localhost:5173/Lobby`;}
+              }
             >
               Quit game
             </Button>

@@ -1,0 +1,18 @@
+{
+    "appId": "com.desktop-app.prepare",
+    "files": [
+        "dist-electron",
+        "dist-react"
+    ],
+    "icon": "src/assets/icon.png",
+    "mac":{
+        "target": "dmg"
+    },
+    "linux": {
+        "target": "AppImage",
+    "category": "Utility"
+    },
+    "win": {
+        "target": ["portable","msi"]
+    }
+}

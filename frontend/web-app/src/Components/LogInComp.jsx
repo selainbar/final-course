@@ -4,13 +4,10 @@ import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import Closer from './Closer';
 import Header from './Header';
-import { useContext } from 'react';
-import { UserContext } from '../UserContext';
 import cookies from 'js-cookie';
 
 axios.defaults.withCredentials=true;
 function LogInComp() {
-  const { user, setUser } = useContext(UserContext);
   
   const [userName, setUserName] = useState('');
   const navigate=useNavigate();
@@ -30,18 +27,17 @@ const handleSubmit = async (event) => {
     });
 if(response.status===200){
 console.log("connected")
-setUser({userName:userName,status:'online'});
 
 handleClickToVerify(event)
   }
    } catch (error) {
     console.error('There was an error!', error);
+    alert('Invalid username or password');
     
   }
 };
  const handleClickToVerify=async (e)=>{
     try{
-      console.log('click');
       const response= await axios.get('http://localhost:5555/JWTvalid',{withCredentials:true})
        if (response.status === 200) {
         const playersOnline=axios.get('http://localhost:8989/Players',{withCredentials:true});
@@ -50,7 +46,6 @@ handleClickToVerify(event)
         if(isOnline){ 
           alert('User is already online');
           console.log(isOnline);
-          console.log()
         }
         else{
           navigate('/Lobby');
@@ -58,6 +53,7 @@ handleClickToVerify(event)
     }}
     catch (error){
       console.error('there was an error!', error)
+      alert('Invalid username or password');
     }
   };
   return (

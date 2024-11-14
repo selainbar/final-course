@@ -6,6 +6,9 @@ import { useState } from 'react'
 import axios from 'axios'
 import Cookies from 'js-cookie';
 import Closer from '../Closer'
+
+
+
 axios.defaults.withCredentials=true;
 
 function Lobby() {
@@ -19,7 +22,7 @@ const savedUserName = Cookies.get('user');
   
 const onlineSocket = useRef(null);
 const chatSocket = useRef(null);
-const gameSocket = useRef(null);
+const inviteSocket = useRef(null);
 
   const checkTokens = async () => {
     try {
@@ -37,18 +40,19 @@ const gameSocket = useRef(null);
 
   useEffect(() => { // Function to initialize sockets and events 
     const initializeSockets = async () => {
-      onlineSocket.current = io('http://localhost:8989', { withCredentials: true });
-      chatSocket.current = io('http://localhost:3000', { withCredentials: true });
-      gameSocket.current = io('http://localhost:4000', { 
+      onlineSocket.current = io('http://localhost:8989', { withCredentials: true ,
+        pingInterval: 25000, 
+        pingTimeout: 6000000});
+      chatSocket.current = io('http://localhost:3000', { withCredentials: true,
+        pingInterval: 25000, 
+        pingTimeout: 6000000 });
+      inviteSocket.current = io('http://localhost:4000', { 
         withCredentials: true, 
-        query: { userName: savedUserName } 
+        query: { userName: savedUserName },
+        pingInterval: 25000, 
+        pingTimeout: 6000000 
       });
 
-      gameSocket.current.on('connect_error', (err) => {
-        console.error('Connection error:', err);
-        alert('Failed to connect to the game server. Please try again later.');
-        navigate('/');
-      });
 
       const validUser = await checkTokens();
       if (validUser !== 200) {
@@ -59,22 +63,20 @@ const gameSocket = useRef(null);
 
 
        // Set up event listeners for gameSocket 
-             gameSocket.current.on('Receive', (sender, receiver) => {
+             inviteSocket.current.on('Receive', (sender, receiver) => {
+              
                console.log('Invite received from', sender, 'to', receiver);
-                const answer = window.confirm(`Accept invite from ${sender}?`);
-                 gameSocket.current.emit('answer', receiver, sender, answer); });
-
-                  gameSocket.current.on('start game', (receiver, sender,answer) => {
-                    
+               const answer = window.confirm(`Accept invite from ${sender}?`);
+               inviteSocket.current.emit('answer', receiver, sender, answer); });
+               
+               inviteSocket.current.on('start game', (receiver, sender,answer) => {
                      console.log('Invite answer from', receiver, 'is', answer);
                      if (answer) {
-
                        const opponent = receiver === savedUserName ? sender : receiver;
                        handleStartGame(savedUserName,opponent);
-                       
                       }
                       } ); 
-                        gameSocket.current.on('declined game', (receiver, answer) => {
+                        inviteSocket.current.on('declined game', (receiver, answer) => {
                           console.log('Invite declined by', receiver, 'with answer', answer);
                             alert(`Invite declined by ${receiver} with answer ${answer}`);
                         });
@@ -82,10 +84,13 @@ const gameSocket = useRef(null);
 
 
                       // Ensure onlineSocket is connected before emitting events
-                        onlineSocket.current.emit('connected', { userName: savedUserName, gameSocketId: gameSocket.id }); 
+                        onlineSocket.current.emit('connected', { userName: savedUserName, gameSocketId: inviteSocket.id }); 
                         // Set up event listeners for onlineSocket 
                         onlineSocket.current.on('statusChange', (updatedList) => {
-                           setPlayers(updatedList); console.log(updatedList); });
+                          console.log('Status change received:', updatedList);
+                           setPlayers(updatedList);
+                            console.log(updatedList); 
+                          });
                            
                            // Set up event listeners for chatSocket 
                            chatSocket.current.emit('connected', savedUserName);
@@ -107,7 +112,7 @@ const gameSocket = useRef(null);
     })
     if(response.status===200){
       console.log('loged out')
-      gameSocket.current.disconnect()
+      inviteSocket.current.disconnect()
       onlineSocket.current.disconnect()
       chatSocket.current.disconnect()
      navigate('/');
@@ -206,8 +211,8 @@ const gameSocket = useRef(null);
   );
 
  const handlePlayClick = (senderUserName,recieverUserName) => {
-  if (gameSocket) {
-    gameSocket.current.emit('invite', senderUserName,recieverUserName);
+  if (inviteSocket) {
+    inviteSocket.current.emit('invite', senderUserName,recieverUserName);
     console.log('Invite sent from', senderUserName, 'to', recieverUserName);
 
   } else {
@@ -218,8 +223,10 @@ const gameSocket = useRef(null);
   // Define the handleStartGame function
   const handleStartGame = (user,opponent) => {
     alert('Game started!');
-    window.open(`http://localhost:5174/game/${user}&${opponent}`);
+    window.location.href=`http://localhost:5174/game/${user}&${opponent}`;
   };
+
+  
 
   return (
     <>

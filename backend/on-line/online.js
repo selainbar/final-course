@@ -9,14 +9,16 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:5555', 'http://localhost:3050', 'http://localhost:8989'],
+    origin: ['http://localhost:5173', 'http://localhost:5174'],
     methods: ['GET', 'POST'],
     credentials: true,
   },
+  pingInterval: 25000, 
+  pingTimeout: 6000000,
 });
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5555', 'http://localhost:3050', 'http://localhost:8989'],
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
   optionsSuccessStatus: 200,
 }));
@@ -24,7 +26,6 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-let counter = 0;
 class Player {
   static onlinePlayers = [];
 
@@ -58,7 +59,16 @@ io.on('connection', (socket) => {
     }
   });
 
-
+socket.on('changingStatus', (user) => {
+    try {
+      console.log('User changing status:', user);
+      const playerIndex = Player.onlinePlayers.findIndex(player => player.userName === user.userName);
+        Player.onlinePlayers[playerIndex].status = user.status;
+        io.emit('statusChange', Player.onlinePlayers);
+    } catch (error) {
+      console.error('Error handling changingStatus event:', error);
+    }
+  });
 
   socket.on('disconnect', () => {
     try {

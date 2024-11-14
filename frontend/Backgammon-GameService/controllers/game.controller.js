@@ -97,6 +97,7 @@ export async function endGame(req, res, next) {
     const gameId = getGameId(username, opponent);
     console.log("exiting " + gameId);
     delete openGames[gameId];
+    
     next();
   } catch (err) {
     return res.status(500).send("Internal server error");

@@ -15,7 +15,7 @@ app.use(cookieParser())
 //CORS so diffrent services can connect to this one
 app.use(express.json());
 //what origins can use my app
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5555', 'http://localhost:3000','http://localhost:8989'];
+const allowedOrigins = ['http://localhost:5173',];
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -66,7 +66,7 @@ if (!token) {
   }
     try{
    const player=jwt.verify(token,process.env.JWT_REFRESH_SECRET);
-const accessToken=jwt.sign({userName:player.userName}, process.env.JWT_ACCESS_SECRET, { expiresIn: `1h` });
+const accessToken=jwt.sign({userName:player.userName}, process.env.JWT_ACCESS_SECRET, { expiresIn: `1s` });
 response.cookie('accessToken',accessToken,{httpOnly:true})
 response.cookie('user',player.userName,{httpOnly:false})
 return response.status(200).send(player.userName);
@@ -79,6 +79,7 @@ return response.status(200).send(player.userName);
 app.get('/checkTokens', (request, response) => {
     const accessToken = request.cookies.accessToken;
     const refreshToken = request.cookies.refreshToken;
+    console.log('checking tokens'); 
 
     if (!accessToken) {
         if (!refreshToken) {

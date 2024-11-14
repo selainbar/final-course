@@ -21,9 +21,3 @@ export const toastStyle = (thisTurn: ThisTurn) => {
     changingTurn(turn);
     toast.success(message, toastStyle(turn));
   }
-  export async function refreshTokens(Token: string) : Promise<string[]> {
-    const response = await axios.post("https://localhost:6001/api/Auth/refresh", {
-      accessToken: Token,
-    });
-  return response.data;
-  }

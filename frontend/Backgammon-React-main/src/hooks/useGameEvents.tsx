@@ -19,7 +19,6 @@ import { getDiceToast, rollingDice } from "../logic/events/roll-dice";
 import { checkCantMove } from "../logic/calculations/calc-possible-moves";
 import { changeTurn } from "../logic/events/change-turn";
 import { selecting } from "../logic/events/select";
-
 interface GameObjectModel {
   game: Game;
   turn: ThisTurn;
