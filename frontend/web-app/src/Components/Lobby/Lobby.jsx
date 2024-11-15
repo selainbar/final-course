@@ -276,9 +276,6 @@ const inviteSocket = useRef(null);
         />
         <button onClick={handleSendClick}>Send</button>
       </div>
-      <button onClick={handleStartGame}>
-        game
-      </button>
       <Closer/>
     </>
   );
