@@ -12,7 +12,7 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 
-const allowedOrigins = ['http://localhost:5173','http://localhost:5555','http://localhost:5890','https://www.postman.com'];
+const allowedOrigins = ['http://localhost:5173'];
 const corsOptions = {
     origin: function (origin, callback) {
         if (allowedOrigins.includes(origin)) {
