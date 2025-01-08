@@ -13,7 +13,7 @@ dist-ssr
 dist-react
 dist-electron
 
-
+node_modules
 *.local
 
 # Editor directories and files
