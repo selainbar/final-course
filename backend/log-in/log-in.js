@@ -131,12 +131,11 @@ app.get('/checkTokens', (request, response) => {
  app.post('/register', async (request, response) => {
     try {
         const { userName, password } = request.body;
-
         if (!userName || !password) {
             return response.status(403).send('Fill up your username and password');
         }
 
-        const player = await Player.findOne({ userName });
+        const player = await Player.findOne(request.body.userName);
 console.log(player);
         if (player) {
             return response.status(403).send('User already exists');

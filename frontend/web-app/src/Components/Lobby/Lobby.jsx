@@ -123,16 +123,16 @@ const inviteSocket = useRef(null);
   };
 
   // Define the Message 
-  const Message = ({ sender, content, time }) => (
+  const Message = ({ sender, content, timestamp }) => (
     <div style={{ marginBottom: '10px', color: sender === Cookies.get('user') ? 'red' : 'black' }}>
-      <strong>{sender}:</strong> {content } <span style={{ fontSize: '0.8em', color: 'gray' }}>{time}</span>
+      <strong>{sender}:</strong> <span style ={{color :'black'}}>{content }</span> <span style={{ fontSize: '0.8em', color: 'gray' }}>{timestamp}</span>
     </div>
   );
 
  // Define the handleSendClick function
  const handleSendClick = () => {
   if (!messageInput) return;
-  chatSocket.current.emit('messageSent', { sender: savedUserName, content: formatMessage(messageInput), time: new Date().toLocaleTimeString() });
+  chatSocket.current.emit('messageSent', { sender: savedUserName, content: formatMessage(messageInput), timestamp: new Date() });
   setMessageInput('');
 
   };
@@ -163,6 +163,7 @@ const inviteSocket = useRef(null);
     try {
       const response = await axios.get('http://localhost:3000/messages', { withCredentials: true });
       setMessages(response.data);
+      console.log('Messages fetched:', response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -248,7 +249,7 @@ const inviteSocket = useRef(null);
                 key={index} 
                 sender={msg.sender} 
                 content={msg.content} 
-                time={msg.time} 
+                timestamp={msg.timestamp} 
               />
             ))}
           </div>

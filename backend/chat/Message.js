@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const messageSchema = new mongoose.Schema({
+const MessageSchema = new mongoose.Schema({
     sender: {
         type: String,
         required: true
@@ -11,10 +11,10 @@ const messageSchema = new mongoose.Schema({
     },
     timestamp: {
         type: Date,
-        default: Date.now
+        required: true,
     }
 });
 
-const Message = mongoose.model('Message', messageSchema);
+const Message = mongoose.model('Message', MessageSchema);
 
 export default Message;

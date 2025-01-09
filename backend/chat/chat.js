@@ -39,6 +39,7 @@ io.on('connection', (socket) => {
         try {
             console.log('message received:', message);
             const newMessage = new Message(message);
+            console.log('new message:', newMessage);
             await newMessage.save();
             io.emit('message', message);
         } catch (error) {
@@ -56,8 +57,9 @@ socket.on('disconnect', () => {
 
 app.get('/messages', async (request, response) => {
     try {
-        const messages = await Message.find();
-        response.json(messages);
+        const Messages = await Message.find();
+        console.log('messages:', Messages);
+        response.json(Messages);
     } catch (error) {
         console.error('Error fetching messages:', error);
         response.status(500).send('Error fetching messages');

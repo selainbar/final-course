@@ -44,7 +44,7 @@ function SignUpComp() {
             }
         } catch (error) {
             console.error('There was an error!', error);
-            alert(error.response.data.status+" "+error.response.data.message);
+            alert(error.response.data);
         }
     };
 
