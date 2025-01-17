@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import Player from './models/player.js';
+import Player from './models/Player.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
@@ -135,7 +135,7 @@ app.get('/checkTokens', (request, response) => {
             return response.status(403).send('Fill up your username and password');
         }
 
-        const player = await Player.findOne(request.body.userName);
+        const player = await Player.findOne({userName:request.body.userName});
 console.log(player);
         if (player) {
             return response.status(403).send('User already exists');

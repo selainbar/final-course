@@ -4,8 +4,6 @@ import axios, {
   CancelTokenSource,
   AxiosError,
 } from "axios";
-import { refreshTokens } from "../utils/functions";
-
 interface UserAuthData {
   userId: string;
   token: string;

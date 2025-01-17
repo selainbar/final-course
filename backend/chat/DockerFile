@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as a parent image
-FROM node:14
+FROM node
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
@@ -11,10 +11,10 @@ COPY package*.json ./
 RUN npm install
 
 # Copy the rest of the application code
-COPY chat.js message.js ./
+COPY . .
 
 # Expose the port the app runs on
-EXPOSE 8080
+EXPOSE 3000
 
 # Define the command to run the app
 CMD ["node", "chat.js"]

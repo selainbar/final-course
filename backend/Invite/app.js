@@ -3,7 +3,6 @@ import http from "http";
 import express from "express";
 import cors from "cors";
 import fs from "fs";
-import gameRoutes from "./routes/game.routes.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -20,7 +19,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use("/api/game", gameRoutes);
 
 app.use((req, res, next) => {
   const error = new Error("Could not find this route.");
