@@ -50,14 +50,15 @@ docker-compose start
 
 the project is containing 5 backends and 3 frontend all Dockerized MicroServices
 Backend:
-login
-online
-chat
-invite
+login,
+online,
+chat,
+invite,
 game Backend(open source)
 
 Frontend:
-web
+web,
+desktop,
 game Frontend (open source)
 
 ## About the Project
@@ -77,35 +78,35 @@ The project contains 5 backends and 3 frontends, all Dockerized MicroServices.
 - **Game Frontend**: Displaying the game board and events of the game according to the game logic similarly to both players.
 game Frontend(open source)
 
-THE LOG-IN-JavaScript
+### THE LOG-IN-JavaScript
 create new users and store their data on mongoDB without storing their password as is instead it encript it and only then stores it so no even the DataBase can know youre password and then it gives you a JWT for Access with expiration time and a Refresh which is for a Life time and store them both on HTTP only cookies in the client to prevent simple javascript manipulations
 more over the app constantly checking the tokens and if the access token is expired it checks the refresh token. if valid then it issue a new access token and if not the user will disconnect from the main app and will be returned to the log in page
 
-THE ONLINE-Javascript
+### THE ONLINE-Javascript
 using WebSocket Protocol to communicate in real time the app active users and update it to all users
 using Socket.io
 
-THE Chat-JavaScript
+### THE Chat-JavaScript
 using a WebSocket Protocol to communicate in real time the users messages and their credetials
 and store all previous messages 
 
-THE INVITE-JavaScript
+### THE INVITE-JavaScript
 using WebSocket to communicate in real time sending and recieving invitation request and asnwering them and passing all the required data to lunch a game
 
 
-THE GAME Backend-JavaScript
+### THE GAME Backend-JavaScript
 handling and communicating with HTTP request all the events of the specific game 
 throughout the game life span
 (creating the game all the way to winning)
 
-THE WEB-REACT
+### THE WEB-REACT
 several pages and components and navigating between them with react router dom
 
 
-THE DEKSTOP-ELECTRON
+### THE DEKSTOP-ELECTRON
 hosting on electron window the app on the web to facilitate desktop app
 
-THE GAME FRONTEND-TypeScript
+### THE GAME FRONTEND-TypeScript
 displaying the game board and events of the game acording to the game logic simularly to both players
 
 
