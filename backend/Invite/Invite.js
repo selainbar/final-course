@@ -9,14 +9,14 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:9000'],
+    origin: ['http://localhost:5173', 'http://localhost:5123'],
     methods: ['GET', 'POST'],
     credentials: true,
   },
 });
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:9000'],
+  origin: ['http://localhost:5173', 'http://localhost:5123'],
   credentials: true,
   optionsSuccessStatus: 200,
 }));
@@ -25,7 +25,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 const gameData = {};
-const rooms = {}; // Move rooms outside to ensure it’s globally accessible
+const rooms = {}; 
 
 app.set('gameData', gameData);
 
@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
                                         delete gameData[userName];
                                        }); });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT ;
 server.listen(PORT, () => console.log(`Game server is running on port ${PORT}`));
 
 

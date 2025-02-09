@@ -1,4 +1,5 @@
-import { Server } from "socket.io";
+
+/*import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -103,3 +104,4 @@ io.on("connection", (socket) => {
 socketServer.listen(3003, () => {
   console.log("Server is running on port 3003 for game invites");
 });
+*/

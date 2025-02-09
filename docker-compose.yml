@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  login:
+    build:
+      context: ./backend/log-in
+    container_name: login_container
+    env_file: ./backend/log-in/.env
+    ports:
+      - "5555:5555"
+
+  online:
+    build:
+      context: ./backend/on-line
+    container_name: online_container
+    env_file: ./backend/on-line/.env
+    ports:
+      - "8989:8989"
+
+  chat:
+    build:
+      context: ./backend/chat
+    container_name: chat_container
+    env_file: ./backend/chat/.env
+    ports:
+      - "3000:3000"
+
+  invite:
+    build:
+      context: ./backend/invite
+    container_name: invite_container
+    env_file: ./backend/invite/.env
+    ports:
+      - "4000:4000"
+       
+  gameservice:
+        build:
+          context: ./frontend/Backgammon-GameService
+        container_name: gameservice_container
+        ports:
+        - "3003:3003"
+
+  reactgame:
+        build:
+          context: ./frontend/Backgammon-React-main
+        container_name: reactgame_container
+        ports:
+          - "5174:5174"
+
+  # desktopapp:
+  #       build:
+  #         context: ./frontend/desktop-app
+  #       container_name: desktopapp_container
+  #       ports:
+  #         - "5123:5123"
+
+  webapp:
+        build:
+          context: ./frontend/web-app
+        container_name: webapp_container
+        ports:
+          - "5173:5173"
